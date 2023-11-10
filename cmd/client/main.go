@@ -1,7 +1,7 @@
 package main
 
 import (
-	"diploma/go-client/pkg/master"
+	"dirs/pkg/master"
 	"fmt"
 )
 

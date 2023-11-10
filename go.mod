@@ -1,3 +1,3 @@
-module diploma/go-client
+module dirs
 
 go 1.20

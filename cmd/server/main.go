@@ -1,6 +1,6 @@
 package main
 
-import "diploma/go-client/pkg/butler"
+import "dirs/pkg/butler"
 
 func main() {
 	butler.InitButler()
