@@ -1,23 +1,60 @@
 package listener
 
 import (
+	"context"
+	drequests "dirs/pkg/requests"
+	dtasks "dirs/pkg/tasks"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 )
 
-func getRoot(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got / request\n")
-	io.WriteString(w, "This is my website!\n")
+type keyType string
+
+const taskChKey keyType = "tashCh"
+
+func askForInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	body, readErr := io.ReadAll(r.Body)
+	if readErr != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var askInfoR drequests.AskInfoRequest
+	marshalErr := json.Unmarshal(body, &askInfoR)
+	if marshalErr != nil {
+		http.Error(w, "Wrong json", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	taskCh := ctx.Value(taskChKey).(chan dtasks.BaseTask)
+	taskCh <- dtasks.NewAskInfoTask(&askInfoR)
+
+	fmt.Printf("got /ask request %s\n", string(body))
 }
 
-func Listen() {
+func Listen(taskCh chan dtasks.BaseTask) {
+	messageContext := context.Background()
+	messageContext = context.WithValue(messageContext, taskChKey, taskCh)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", getRoot)
+	mux.HandleFunc("/ask", askForInfo)
 	serverOne := &http.Server{
 		Addr:    ":3333",
 		Handler: mux,
+		BaseContext: func(l net.Listener) context.Context {
+			return messageContext
+		},
 	}
 
 	err := serverOne.ListenAndServe()
