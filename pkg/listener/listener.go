@@ -67,7 +67,7 @@ func receiveInfo(w http.ResponseWriter, r *http.Request) {
 	taskCh := ctx.Value(taskChKey).(chan dtasks.ITask)
 	taskCh <- dtasks.NewSortInfoTaskPointer(sendInfoR)
 
-	fmt.Printf("got /ask request %s\n", string(body))
+	fmt.Printf("got /send request %s\n", string(body))
 }
 
 func Listen(taskCh chan dtasks.ITask) {
