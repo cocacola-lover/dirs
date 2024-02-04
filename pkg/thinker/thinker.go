@@ -2,25 +2,33 @@ package thinker
 
 import (
 	"dirs/pkg/broadcaster"
+	fl "dirs/pkg/friendList"
 	"dirs/pkg/listener"
 	m "dirs/pkg/matchmaker"
+	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
 	"fmt"
 )
 
 func InitThinker() {
 	matchmaker := m.NewMatchmaker()
-
 	taskCh := make(chan dtasks.ITask)
+	friendList := fl.NewFriendList()
 
-	go listener.Listen(taskCh)
+	serviceStore := ss.ServiceStore{
+		Matchmaker: &matchmaker,
+		TaskCh:     &taskCh,
+		FriendList: &friendList,
+	}
 
-	resolveTasks(taskCh, &matchmaker)
+	go listener.Listen(serviceStore)
+
+	resolveTasks(serviceStore)
 }
 
-func resolveTasks(taskCh chan dtasks.ITask, matchmaker *m.Matchmaker) {
+func resolveTasks(serviceStore ss.ServiceStore) {
 	for {
-		task, ok := <-taskCh
+		task, ok := <-*serviceStore.TaskCh
 
 		var newTasks []dtasks.ITask
 
@@ -31,23 +39,23 @@ func resolveTasks(taskCh chan dtasks.ITask, matchmaker *m.Matchmaker) {
 
 		switch task.GetTaskId() {
 		case dtasks.OuterAskInfoId:
-			newTasks = resolveOuterAskInfo(task.(*dtasks.OuterAskInfoTask), matchmaker)
+			newTasks = resolveOuterAskInfo(task.(*dtasks.OuterAskInfoTask), serviceStore)
 		case dtasks.SortInfoId:
-			newTasks = resolveSortInfo(task.(*dtasks.SortInfoTask), matchmaker)
+			newTasks = resolveSortInfo(task.(*dtasks.SortInfoTask), serviceStore)
 		default:
 			fmt.Println("Uknown task")
 		}
 
 		for _, v := range newTasks {
-			taskCh <- v
+			*serviceStore.TaskCh <- v
 		}
 	}
 }
 
-func resolveOuterAskInfo(task *dtasks.OuterAskInfoTask, matchmaker *m.Matchmaker) []dtasks.ITask {
+func resolveOuterAskInfo(task *dtasks.OuterAskInfoTask, serviceStore ss.ServiceStore) []dtasks.ITask {
 
 	if task.Result == nil {
-		if !matchmaker.ProcessOuterAskInfoTask(task) {
+		if !serviceStore.Matchmaker.ProcessOuterAskInfoTask(task) {
 			return nil
 		}
 	}
@@ -56,16 +64,6 @@ func resolveOuterAskInfo(task *dtasks.OuterAskInfoTask, matchmaker *m.Matchmaker
 	return nil
 }
 
-func resolveSortInfo(task *dtasks.SortInfoTask, matchmaker *m.Matchmaker) []dtasks.ITask {
-	return convertArrayToITask(matchmaker.ProcessSortInfoTask(task))
-}
-
-func convertArrayToITask[TaskType dtasks.ITask](tasks []TaskType) []dtasks.ITask {
-	interfaceArray := make([]dtasks.ITask, len(tasks))
-
-	for i := range tasks {
-		interfaceArray = append(interfaceArray, tasks[i])
-	}
-
-	return interfaceArray
+func resolveSortInfo(task *dtasks.SortInfoTask, serviceStore ss.ServiceStore) []dtasks.ITask {
+	return convertArrayToITask(serviceStore.Matchmaker.ProcessSortInfoTask(task))
 }

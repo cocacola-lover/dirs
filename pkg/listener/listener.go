@@ -3,6 +3,7 @@ package listener
 import (
 	"context"
 	drequests "dirs/pkg/requests"
+	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
 	"encoding/json"
 	"errors"
@@ -14,7 +15,7 @@ import (
 
 type keyType string
 
-const taskChKey keyType = "tashCh"
+const ssKey keyType = "ssKey"
 
 func askForInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -37,7 +38,7 @@ func askForInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	taskCh := ctx.Value(taskChKey).(chan dtasks.ITask)
+	taskCh := *ctx.Value(ssKey).(ss.ServiceStore).TaskCh
 	taskCh <- dtasks.NewOuterAskInfoTaskPointer(askInfoR)
 
 	fmt.Printf("got /ask request %s\n", string(body))
@@ -64,15 +65,15 @@ func receiveInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	taskCh := ctx.Value(taskChKey).(chan dtasks.ITask)
+	taskCh := *ctx.Value(ssKey).(ss.ServiceStore).TaskCh
 	taskCh <- dtasks.NewSortInfoTaskPointer(sendInfoR)
 
 	fmt.Printf("got /send request %s\n", string(body))
 }
 
-func Listen(taskCh chan dtasks.ITask) {
+func Listen(serviceStore ss.ServiceStore) {
 	messageContext := context.Background()
-	messageContext = context.WithValue(messageContext, taskChKey, taskCh)
+	messageContext = context.WithValue(messageContext, ssKey, serviceStore)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", askForInfo)
