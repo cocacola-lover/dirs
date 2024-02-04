@@ -2,78 +2,29 @@ package listener
 
 import (
 	"context"
-	drequests "dirs/pkg/requests"
 	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 )
 
-type keyType string
+type listenerKeyType string
 
-const ssKey keyType = "ssKey"
+const ssKeyListener listenerKeyType = "ssKeyListener"
 
 func askForInfo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	body, readErr := io.ReadAll(r.Body)
-	if readErr != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	var askInfoR drequests.AskInfoRequest
-	marshalErr := json.Unmarshal(body, &askInfoR)
-	if marshalErr != nil {
-		http.Error(w, "Wrong json", http.StatusBadRequest)
-		return
-	}
-
-	ctx := r.Context()
-	taskCh := *ctx.Value(ssKey).(ss.ServiceStore).TaskCh
-	taskCh <- dtasks.NewAskInfoTaskPointer(askInfoR)
-
-	fmt.Printf("got /ask request %s\n", string(body))
+	readRequestAndCreateTask(w, r, "POST", dtasks.NewAskInfoTaskPointer, ssKeyListener)
 }
 
 func receiveInfo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	body, readErr := io.ReadAll(r.Body)
-	if readErr != nil {
-		http.Error(w, "Error reading request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	var sendInfoR drequests.SendInfoRequest
-	marshalErr := json.Unmarshal(body, &sendInfoR)
-	if marshalErr != nil {
-		http.Error(w, "Wrong json", http.StatusBadRequest)
-		return
-	}
-
-	ctx := r.Context()
-	taskCh := *ctx.Value(ssKey).(ss.ServiceStore).TaskCh
-	taskCh <- dtasks.NewSortInfoTaskPointer(sendInfoR)
-
-	fmt.Printf("got /send request %s\n", string(body))
+	readRequestAndCreateTask(w, r, "POST", dtasks.NewSortInfoTaskPointer, ssKeyListener)
 }
 
 func Listen(serviceStore ss.ServiceStore) {
 	messageContext := context.Background()
-	messageContext = context.WithValue(messageContext, ssKey, serviceStore)
+	messageContext = context.WithValue(messageContext, ssKeyListener, serviceStore)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", askForInfo)
