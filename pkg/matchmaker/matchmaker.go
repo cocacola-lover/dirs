@@ -4,14 +4,14 @@ import dtasks "dirs/pkg/tasks"
 
 type Matchmaker struct {
 	// Search requests
-	requests map[string][]*dtasks.OuterAskInfoTask
+	requests map[string][]*dtasks.AskInfoTask
 	// Array with stored info
 	store map[string]string
 }
 
 // Returns processedtrue if info found
 // else return false
-func (m Matchmaker) ProcessOuterAskInfoTask(task *dtasks.OuterAskInfoTask) bool {
+func (m Matchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) bool {
 	val, ok := m.store[task.Search]
 
 	if ok {
@@ -23,7 +23,7 @@ func (m Matchmaker) ProcessOuterAskInfoTask(task *dtasks.OuterAskInfoTask) bool 
 	}
 }
 
-func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.OuterAskInfoTask {
+func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.AskInfoTask {
 	m.store[task.Search] = *task.Result
 
 	awaitingProcessing := m.requests[*task.Result]
@@ -37,5 +37,5 @@ func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.Out
 }
 
 func NewMatchmaker() Matchmaker {
-	return Matchmaker{requests: make(map[string][]*dtasks.OuterAskInfoTask), store: make(map[string]string)}
+	return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
 }

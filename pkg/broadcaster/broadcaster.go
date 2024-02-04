@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func ProcessOuterAskInfoTask(task *dtasks.OuterAskInfoTask) error {
+func ProcessAskInfoTask(task *dtasks.AskInfoTask) error {
 	jsonBody, err := json.Marshal(&drequests.SendInfoRequest{Search: task.Search, Info: *task.Result})
 	if err != nil {
 		fmt.Printf("client: could not marshal request: %s\n", err)

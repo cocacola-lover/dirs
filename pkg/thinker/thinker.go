@@ -38,8 +38,8 @@ func resolveTasks(serviceStore ss.ServiceStore) {
 		}
 
 		switch task.GetTaskId() {
-		case dtasks.OuterAskInfoId:
-			newTasks = resolveOuterAskInfo(task.(*dtasks.OuterAskInfoTask), serviceStore)
+		case dtasks.AskInfoId:
+			newTasks = resolveAskInfo(task.(*dtasks.AskInfoTask), serviceStore)
 		case dtasks.SortInfoId:
 			newTasks = resolveSortInfo(task.(*dtasks.SortInfoTask), serviceStore)
 		default:
@@ -52,15 +52,15 @@ func resolveTasks(serviceStore ss.ServiceStore) {
 	}
 }
 
-func resolveOuterAskInfo(task *dtasks.OuterAskInfoTask, serviceStore ss.ServiceStore) []dtasks.ITask {
+func resolveAskInfo(task *dtasks.AskInfoTask, serviceStore ss.ServiceStore) []dtasks.ITask {
 
 	if task.Result == nil {
-		if !serviceStore.Matchmaker.ProcessOuterAskInfoTask(task) {
+		if !serviceStore.Matchmaker.ProcessAskInfoTask(task) {
 			return nil
 		}
 	}
 
-	broadcaster.ProcessOuterAskInfoTask(task)
+	broadcaster.ProcessAskInfoTask(task)
 	return nil
 }
 

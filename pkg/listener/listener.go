@@ -39,7 +39,7 @@ func askForInfo(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	taskCh := *ctx.Value(ssKey).(ss.ServiceStore).TaskCh
-	taskCh <- dtasks.NewOuterAskInfoTaskPointer(askInfoR)
+	taskCh <- dtasks.NewAskInfoTaskPointer(askInfoR)
 
 	fmt.Printf("got /ask request %s\n", string(body))
 }

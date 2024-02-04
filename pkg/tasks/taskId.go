@@ -3,7 +3,7 @@ package dtasks
 type DTaskId uint
 
 const (
-	OuterAskInfoId DTaskId = iota
+	AskInfoId DTaskId = iota
 	SortInfoId
 
 	NoneId
