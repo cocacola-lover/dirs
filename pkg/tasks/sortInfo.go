@@ -15,7 +15,7 @@ func (t SortInfoTask) GetTaskId() DTaskId {
 }
 
 func (t SortInfoTask) String() string {
-	return fmt.Sprintf("SortInfoTask for %s : %s", t.Search, t.Search)
+	return fmt.Sprintf("SortInfoTask for %s : %s", t.Search, *t.Result)
 }
 
 func NewSortInfoTaskPointer(r drequests.SendInfoRequest) *SortInfoTask {
