@@ -21,6 +21,7 @@ func InitThinker() {
 	}
 
 	go listener.Listen(serviceStore)
+	go listener.Serve(serviceStore)
 
 	resolveTasks(serviceStore)
 }
@@ -41,6 +42,8 @@ func resolveTasks(serviceStore ss.ServiceStore) {
 			newTasks = resolveAskInfo(task.(*dtasks.AskInfoTask), serviceStore)
 		case dtasks.SortInfoId:
 			newTasks = resolveSortInfo(task.(*dtasks.SortInfoTask), serviceStore)
+		case dtasks.DemandInfoId:
+			resolveDemandInfo(task.(*dtasks.DemandInfoTask), serviceStore)
 		default:
 			fmt.Println("Uknown task")
 		}

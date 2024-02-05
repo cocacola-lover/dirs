@@ -1,13 +1,13 @@
 package broadcaster
 
 import (
-	"bytes"
 	drequests "dirs/pkg/requests"
+	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"os"
 )
 
 func ProcessAskInfoTask(task *dtasks.AskInfoTask) error {
@@ -17,28 +17,19 @@ func ProcessAskInfoTask(task *dtasks.AskInfoTask) error {
 		return err
 	}
 
-	bodyReader := bytes.NewReader(jsonBody)
-	req, err := http.NewRequest(http.MethodPost, task.From, bodyReader)
+	return sendRequest(jsonBody, task.From, http.MethodPost)
+}
 
+func ProcessDemandInfoTask(task *dtasks.DemandInfoTask, serviceStore ss.ServiceStore) error {
+	jsonBody, err := json.Marshal(&drequests.AskInfoRequest{Search: task.Search, From: os.Getenv("address")})
 	if err != nil {
-		fmt.Printf("client: could not create request: %s\n", err)
+		fmt.Printf("client: could not marshal request: %s\n", err)
 		return err
 	}
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Printf("client: error making http request: %s\n", err)
-		return err
+	for _, friend := range serviceStore.FriendList.Friends {
+		sendRequest(jsonBody, friend, http.MethodPost)
 	}
 
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
-
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		fmt.Printf("client: could not read response body: %s\n", err)
-		return err
-	}
-	fmt.Printf("client: response body: %s\n", resBody)
 	return nil
 }

@@ -21,3 +21,7 @@ func resolveAskInfo(task *dtasks.AskInfoTask, serviceStore ss.ServiceStore) []dt
 func resolveSortInfo(task *dtasks.SortInfoTask, serviceStore ss.ServiceStore) []dtasks.ITask {
 	return convertArrayToITask(serviceStore.Matchmaker.ProcessSortInfoTask(task))
 }
+
+func resolveDemandInfo(task *dtasks.DemandInfoTask, serviceStore ss.ServiceStore) {
+	broadcaster.ProcessDemandInfoTask(task, serviceStore)
+}
