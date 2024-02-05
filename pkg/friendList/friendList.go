@@ -7,13 +7,13 @@ import (
 )
 
 type FriendList struct {
-	friends []string
+	Friends []string
 }
 
 func (l FriendList) IsFriend(url string) bool {
 	check := false
 
-	for _, v := range l.friends {
+	for _, v := range l.Friends {
 		if v == url {
 			check = true
 		}
@@ -28,8 +28,8 @@ func NewFriendList() FriendList {
 	marshalErr := json.Unmarshal([]byte(os.Getenv("friends")), &friendsArr)
 	if marshalErr != nil {
 		fmt.Print("Failed to unmarshal FriendList")
-		return FriendList{friends: make([]string, 0)}
+		return FriendList{Friends: make([]string, 0)}
 	}
 
-	return FriendList{friends: friendsArr}
+	return FriendList{Friends: friendsArr}
 }
