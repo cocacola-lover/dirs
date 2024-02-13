@@ -1,15 +1,11 @@
 package main
 
 import (
-	"dirs/pkg/master"
-	"fmt"
+	"dirs/pkg/thinker"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	ans, err := master.OrderGreet()
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(ans)
-	}
+	thinker.InitThinker()
 }
