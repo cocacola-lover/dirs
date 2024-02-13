@@ -46,7 +46,7 @@ func NewMatchmaker() Matchmaker {
 	var knownInfo map[string]string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("knownInfo")), &knownInfo)
 	if marshalErr != nil {
-		fmt.Print("Failed to unmarshal KnownInfo")
+		fmt.Println("Failed to unmarshal KnownInfo")
 		return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
 	}
 

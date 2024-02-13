@@ -27,7 +27,7 @@ func NewFriendList() FriendList {
 	var friendsArr []string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("friends")), &friendsArr)
 	if marshalErr != nil {
-		fmt.Print("Failed to unmarshal FriendList")
+		fmt.Println("Failed to unmarshal FriendList")
 		return FriendList{Friends: make([]string, 0)}
 	}
 
