@@ -1,6 +1,11 @@
 package matchmaker
 
-import dtasks "dirs/pkg/tasks"
+import (
+	dtasks "dirs/pkg/tasks"
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 type Matchmaker struct {
 	// Search requests
@@ -37,5 +42,13 @@ func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.Ask
 }
 
 func NewMatchmaker() Matchmaker {
-	return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
+
+	var knownInfo map[string]string
+	marshalErr := json.Unmarshal([]byte(os.Getenv("knownInfo")), &knownInfo)
+	if marshalErr != nil {
+		fmt.Print("Failed to unmarshal KnownInfo")
+		return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
+	}
+
+	return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: knownInfo}
 }
