@@ -18,12 +18,17 @@ func receiveDemand(w http.ResponseWriter, r *http.Request) {
 	readRequestAndCreateTask(w, r, "POST", dtasks.NewDemandInfoTaskPointer, ssKeyButler)
 }
 
+func receivePing(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello! Everything is working as intended\n")
+}
+
 func Serve(serviceStore ss.ServiceStore) {
 	messageContext := context.Background()
 	messageContext = context.WithValue(messageContext, ssKeyButler, serviceStore)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", receiveDemand)
+	mux.HandleFunc("/ping", receivePing)
 	serverOne := &http.Server{
 		Addr:    ":3334",
 		Handler: mux,
