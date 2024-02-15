@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WebLogger struct {
+type weblogger struct {
 	channel chan byte
 }
 
@@ -22,7 +22,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (wl WebLogger) broadcast(rw http.ResponseWriter, r *http.Request) {
+func (wl weblogger) broadcast(rw http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(rw, r, nil)
 	log.Println("Starting connection")
 	if err != nil {
@@ -48,7 +48,7 @@ func (wl WebLogger) broadcast(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (wl WebLogger) BroadcastLogs() {
+func (wl weblogger) broadcastLogs() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", wl.broadcast)
 
@@ -66,7 +66,7 @@ func (wl WebLogger) BroadcastLogs() {
 }
 
 // This reader awaits info if channel is empty at the start
-func (wl WebLogger) Read(p []byte) (n int, err error) {
+func (wl weblogger) Read(p []byte) (n int, err error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
@@ -91,7 +91,7 @@ func (wl WebLogger) Read(p []byte) (n int, err error) {
 	return 0, nil
 }
 
-func (wl WebLogger) Write(p []byte) (n int, err error) {
+func (wl weblogger) Write(p []byte) (n int, err error) {
 	for _, val := range p {
 		select {
 		case wl.channel <- val:
@@ -105,6 +105,6 @@ func (wl WebLogger) Write(p []byte) (n int, err error) {
 	return 0, nil
 }
 
-func NewWebLogger() WebLogger {
-	return WebLogger{channel: make(chan byte, 1024)}
+func newWebLogger() weblogger {
+	return weblogger{channel: make(chan byte, 1024)}
 }
