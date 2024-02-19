@@ -3,7 +3,6 @@ package weblogger
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
@@ -11,7 +10,7 @@ import (
 )
 
 type websocketMessenger struct {
-	channel chan byte
+	channel chan []byte
 }
 
 var upgrader = websocket.Upgrader{
@@ -22,8 +21,8 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (wm websocketMessenger) broadcast(rw http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(rw, r, nil)
+func (wm websocketMessenger) broadcast(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	log.Println("Starting connection")
 	if err != nil {
 		log.Print("Upgrade websocket connection:", err)
@@ -31,21 +30,12 @@ func (wm websocketMessenger) broadcast(rw http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 	for {
-		w, err := conn.NextWriter(websocket.TextMessage)
-		if err != nil {
-			log.Println("Create WebsocketWriter :", err)
-			continue
-		}
-
-		if _, err := io.Copy(w, wm); err != nil {
-			log.Println("Copy info to WebsocketWriter :", err)
-			continue
-		}
-		if err := w.Close(); err != nil {
-			log.Println("Close WebsocketWriter :", err)
-			continue
+		if err := conn.WriteMessage(websocket.TextMessage, wm.ReadMessage()); err != nil {
+			log.Println("Write websocket message :", err)
+			break
 		}
 	}
+	log.Println("Closing connection")
 }
 
 func (wm websocketMessenger) broadcastLogs() {
@@ -66,45 +56,25 @@ func (wm websocketMessenger) broadcastLogs() {
 }
 
 // This reader awaits info if channel is empty at the start
-func (wm websocketMessenger) Read(p []byte) (n int, err error) {
-	if len(p) == 0 {
-		return 0, nil
-	}
-
-	checkValue, ok := <-wm.channel
-
-	if !ok {
-		return 0, io.EOF
-	}
-
-	p[0] = checkValue
-
-	for i := 1; i < len(p); i++ {
-		select {
-		case p[i] = <-wm.channel:
-			// Do nothing
-		default:
-			return i, io.EOF
-		}
-	}
-
-	return 0, nil
+func (wm websocketMessenger) ReadMessage() []byte {
+	return <-wm.channel
 }
 
 func (wm websocketMessenger) Write(p []byte) (n int, err error) {
-	for _, val := range p {
-		select {
-		case wm.channel <- val:
-			// Do nothing
-		default:
-			<-wm.channel
-			wm.channel <- val
-		}
+	newp := make([]byte, len(p))
+	copy(newp, p)
+
+	select {
+	case wm.channel <- newp:
+		// Do nothing
+	default:
+		<-wm.channel
+		wm.channel <- newp
 	}
 
 	return 0, nil
 }
 
 func newWebsocketMessenger() websocketMessenger {
-	return websocketMessenger{channel: make(chan byte, 1024)}
+	return websocketMessenger{channel: make(chan []byte, 16)}
 }
