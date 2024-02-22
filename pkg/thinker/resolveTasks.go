@@ -14,7 +14,7 @@ func resolveAskInfo(task *dtasks.AskInfoTask, serviceStore ss.ServiceStore) []dt
 		}
 	}
 
-	broadcaster.ProcessAskInfoTask(task)
+	broadcaster.ProcessAskInfoTask(task, serviceStore)
 	return nil
 }
 

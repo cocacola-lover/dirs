@@ -3,21 +3,22 @@ package thinker
 import (
 	fl "dirs/pkg/friendList"
 	"dirs/pkg/listener"
+	"dirs/pkg/logger"
 	m "dirs/pkg/matchmaker"
 	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
-	"fmt"
 )
 
-func InitThinker() {
-	matchmaker := m.NewMatchmaker()
+func InitThinker(logger logger.Logger) {
+	matchmaker := m.NewMatchmaker(logger)
+	friendList := fl.NewFriendList(logger)
 	taskCh := make(chan dtasks.ITask)
-	friendList := fl.NewFriendList()
 
 	serviceStore := ss.ServiceStore{
 		Matchmaker: &matchmaker,
 		TaskCh:     &taskCh,
 		FriendList: &friendList,
+		Logger:     &logger,
 	}
 
 	go listener.Listen(serviceStore)
@@ -33,7 +34,7 @@ func resolveTasks(serviceStore ss.ServiceStore) {
 		var newTasks []dtasks.ITask
 
 		if !ok {
-			fmt.Println("Channel closed")
+			serviceStore.Logger.Warning.Println("Channel closed")
 			return
 		}
 
@@ -45,7 +46,7 @@ func resolveTasks(serviceStore ss.ServiceStore) {
 		case dtasks.DemandInfoId:
 			resolveDemandInfo(task.(*dtasks.DemandInfoTask), serviceStore)
 		default:
-			fmt.Println("Uknown task")
+			serviceStore.Logger.Warning.Println("Uknown task")
 		}
 
 		for _, v := range newTasks {

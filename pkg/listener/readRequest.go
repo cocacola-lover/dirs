@@ -30,10 +30,11 @@ func readRequestAndCreateTask[RequestType interface{}, TaskType dtasks.ITask](w 
 	}
 
 	ctx := r.Context()
-	taskCh := *ctx.Value(key).(ss.ServiceStore).TaskCh
+	serviceStore := ctx.Value(key).(ss.ServiceStore)
+	taskCh := *serviceStore.TaskCh
 	taskCh <- initTask(requestBody)
 
-	fmt.Printf("got request %s\n", string(body))
+	serviceStore.Logger.Info.Printf("got request %s\n", string(body))
 
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	ss "dirs/pkg/serviceStore"
 	dtasks "dirs/pkg/tasks"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 )
@@ -39,8 +38,8 @@ func Listen(serviceStore ss.ServiceStore) {
 
 	err := serverOne.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server one closed\n")
+		serviceStore.Logger.Error.Printf("server one closed\n")
 	} else if err != nil {
-		fmt.Printf("error listening for server one: %s\n", err)
+		serviceStore.Logger.Error.Printf("error listening for server one: %s\n", err)
 	}
 }

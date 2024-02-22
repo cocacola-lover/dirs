@@ -1,9 +1,9 @@
 package matchmaker
 
 import (
+	"dirs/pkg/logger"
 	dtasks "dirs/pkg/tasks"
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -41,12 +41,12 @@ func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.Ask
 	return awaitingProcessing
 }
 
-func NewMatchmaker() Matchmaker {
+func NewMatchmaker(logger logger.Logger) Matchmaker {
 
 	var knownInfo map[string]string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("knownInfo")), &knownInfo)
 	if marshalErr != nil {
-		fmt.Println("Failed to unmarshal KnownInfo")
+		logger.Error.Println("Failed to unmarshal KnownInfo")
 		return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
 	}
 

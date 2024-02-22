@@ -1,11 +1,14 @@
 package main
 
 import (
+	"dirs/pkg/logger"
 	"dirs/pkg/thinker"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	thinker.InitThinker()
+	logger := logger.NewLogger()
+
+	thinker.InitThinker(logger)
 }

@@ -1,8 +1,8 @@
 package friendlist
 
 import (
+	"dirs/pkg/logger"
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -22,12 +22,12 @@ func (l FriendList) IsFriend(url string) bool {
 	return check
 }
 
-func NewFriendList() FriendList {
+func NewFriendList(logger logger.Logger) FriendList {
 
 	var friendsArr []string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("friends")), &friendsArr)
 	if marshalErr != nil {
-		fmt.Println("Failed to unmarshal FriendList")
+		logger.Error.Println("Failed to unmarshal FriendList")
 		return FriendList{Friends: make([]string, 0)}
 	}
 

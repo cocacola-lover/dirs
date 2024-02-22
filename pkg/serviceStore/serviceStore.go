@@ -2,6 +2,7 @@ package servicestore
 
 import (
 	friendlist "dirs/pkg/friendList"
+	"dirs/pkg/logger"
 	"dirs/pkg/matchmaker"
 	dtasks "dirs/pkg/tasks"
 )
@@ -11,4 +12,5 @@ type ServiceStore struct {
 	Matchmaker *matchmaker.Matchmaker
 	FriendList *friendlist.FriendList
 	TaskCh     *chan dtasks.ITask
+	Logger     *logger.Logger
 }
