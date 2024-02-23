@@ -6,8 +6,10 @@ import (
 	tp "dirs/pkg/tasks"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"os"
 )
 
 type butlerKeyType string
@@ -23,6 +25,16 @@ func receivePing(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello! Everything is working as intended\n")
 }
 
+func receiveLogRequest(w http.ResponseWriter, r *http.Request) {
+	b, err := os.ReadFile("logs.txt")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprint(w, string(b))
+}
+
 func Serve(env envp.Environment, taskCh *chan tp.ITask) {
 	messageContext := context.Background()
 
@@ -34,6 +46,7 @@ func Serve(env envp.Environment, taskCh *chan tp.ITask) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", receiveDemand)
 	mux.HandleFunc("/ping", receivePing)
+	mux.HandleFunc("/log", receiveLogRequest)
 	serverOne := &http.Server{
 		Addr:    ":3334",
 		Handler: mux,

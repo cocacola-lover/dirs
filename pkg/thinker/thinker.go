@@ -13,6 +13,8 @@ func InitThinker(env envp.Environment) {
 	go listener.Listen(env, &taskCh)
 	go listener.Serve(env, &taskCh)
 
+	env.Info.Println("DIRS client started")
+
 	resolveTasks(env, &taskCh)
 }
 
