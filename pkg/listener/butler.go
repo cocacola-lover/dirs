@@ -2,8 +2,8 @@ package listener
 
 import (
 	"context"
-	ss "dirs/pkg/serviceStore"
-	dtasks "dirs/pkg/tasks"
+	envp "dirs/pkg/environment"
+	tp "dirs/pkg/tasks"
 	"errors"
 	"fmt"
 	"net"
@@ -12,19 +12,24 @@ import (
 
 type butlerKeyType string
 
-const ssKeyButler butlerKeyType = "ssKeyButler"
+const envKeyButler butlerKeyType = "envButler"
+const chKeyButler butlerKeyType = "chButler"
 
 func receiveDemand(w http.ResponseWriter, r *http.Request) {
-	readRequestAndCreateTask(w, r, "POST", dtasks.NewDemandInfoTaskPointer, ssKeyButler)
+	readRequestAndCreateTask(w, r, "POST", tp.NewDemandInfoTaskPointer, chKeyButler)
 }
 
 func receivePing(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello! Everything is working as intended\n")
 }
 
-func Serve(serviceStore ss.ServiceStore) {
+func Serve(env envp.Environment, taskCh *chan tp.ITask) {
 	messageContext := context.Background()
-	messageContext = context.WithValue(messageContext, ssKeyButler, serviceStore)
+
+	// Add env
+	messageContext = context.WithValue(messageContext, envKeyButler, env)
+	// Add taskCh
+	messageContext = context.WithValue(messageContext, chKeyButler, taskCh)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", receiveDemand)
@@ -39,8 +44,8 @@ func Serve(serviceStore ss.ServiceStore) {
 
 	err := serverOne.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		serviceStore.Logger.Error.Printf("server one closed\n")
+		env.Error.Printf("server one closed\n")
 	} else if err != nil {
-		serviceStore.Logger.Error.Printf("error listening for server one: %s\n", err)
+		env.Error.Printf("error listening for server one: %s\n", err)
 	}
 }

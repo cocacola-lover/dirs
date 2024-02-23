@@ -2,8 +2,8 @@ package listener
 
 import (
 	"context"
-	ss "dirs/pkg/serviceStore"
-	dtasks "dirs/pkg/tasks"
+	envp "dirs/pkg/environment"
+	tp "dirs/pkg/tasks"
 	"errors"
 	"net"
 	"net/http"
@@ -11,19 +11,24 @@ import (
 
 type listenerKeyType string
 
-const ssKeyListener listenerKeyType = "ssKeyListener"
+const envKeyListener listenerKeyType = "envListener"
+const chKeyListener listenerKeyType = "chListener"
 
 func askForInfo(w http.ResponseWriter, r *http.Request) {
-	readRequestAndCreateTask(w, r, "POST", dtasks.NewAskInfoTaskPointer, ssKeyListener)
+	readRequestAndCreateTask(w, r, "POST", tp.NewAskInfoTaskPointer, chKeyListener)
 }
 
 func receiveInfo(w http.ResponseWriter, r *http.Request) {
-	readRequestAndCreateTask(w, r, "POST", dtasks.NewSortInfoTaskPointer, ssKeyListener)
+	readRequestAndCreateTask(w, r, "POST", tp.NewSortInfoTaskPointer, chKeyListener)
 }
 
-func Listen(serviceStore ss.ServiceStore) {
+func Listen(env envp.Environment, taskCh *chan tp.ITask) {
 	messageContext := context.Background()
-	messageContext = context.WithValue(messageContext, ssKeyListener, serviceStore)
+
+	// Add env
+	messageContext = context.WithValue(messageContext, envKeyListener, env)
+	// Add taskCh
+	messageContext = context.WithValue(messageContext, chKeyListener, taskCh)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", askForInfo)
@@ -38,8 +43,8 @@ func Listen(serviceStore ss.ServiceStore) {
 
 	err := serverOne.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		serviceStore.Logger.Error.Printf("server one closed\n")
+		env.Error.Printf("server one closed\n")
 	} else if err != nil {
-		serviceStore.Logger.Error.Printf("error listening for server one: %s\n", err)
+		env.Error.Printf("error listening for server one: %s\n", err)
 	}
 }

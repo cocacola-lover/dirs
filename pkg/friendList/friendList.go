@@ -6,14 +6,18 @@ import (
 	"os"
 )
 
-type FriendList struct {
-	Friends []string
+type actualFriendList struct {
+	friends []string
 }
 
-func (l FriendList) IsFriend(url string) bool {
+func (l actualFriendList) Friends() []string {
+	return l.friends
+}
+
+func (l actualFriendList) IsFriend(url string) bool {
 	check := false
 
-	for _, v := range l.Friends {
+	for _, v := range l.friends {
 		if v == url {
 			check = true
 		}
@@ -22,14 +26,14 @@ func (l FriendList) IsFriend(url string) bool {
 	return check
 }
 
-func NewFriendList(logger logger.Logger) FriendList {
+func NewFriendList(Error logger.Logger) FriendList {
 
 	var friendsArr []string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("friends")), &friendsArr)
 	if marshalErr != nil {
-		logger.Error.Println("Failed to unmarshal FriendList")
-		return FriendList{Friends: make([]string, 0)}
+		Error.Println("Failed to unmarshal FriendList")
+		return &actualFriendList{friends: make([]string, 0)}
 	}
 
-	return FriendList{Friends: friendsArr}
+	return &actualFriendList{friends: friendsArr}
 }

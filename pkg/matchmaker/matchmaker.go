@@ -1,13 +1,13 @@
 package matchmaker
 
 import (
-	"dirs/pkg/logger"
+	l "dirs/pkg/logger"
 	dtasks "dirs/pkg/tasks"
 	"encoding/json"
 	"os"
 )
 
-type Matchmaker struct {
+type actualMatchmaker struct {
 	// Search requests
 	requests map[string][]*dtasks.AskInfoTask
 	// Array with stored info
@@ -16,7 +16,7 @@ type Matchmaker struct {
 
 // Returns processedtrue if info found
 // else return false
-func (m Matchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) bool {
+func (m actualMatchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) bool {
 	val, ok := m.store[task.Search]
 
 	if ok {
@@ -28,7 +28,7 @@ func (m Matchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) bool {
 	}
 }
 
-func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.AskInfoTask {
+func (m actualMatchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.AskInfoTask {
 	m.store[task.Search] = *task.Result
 
 	awaitingProcessing := m.requests[*task.Result]
@@ -41,14 +41,14 @@ func (m Matchmaker) ProcessSortInfoTask(task *dtasks.SortInfoTask) []*dtasks.Ask
 	return awaitingProcessing
 }
 
-func NewMatchmaker(logger logger.Logger) Matchmaker {
+func NewMatchmaker(Error l.Logger) Matchmaker {
 
 	var knownInfo map[string]string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("knownInfo")), &knownInfo)
 	if marshalErr != nil {
-		logger.Error.Println("Failed to unmarshal KnownInfo")
-		return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
+		Error.Println("Failed to unmarshal KnownInfo")
+		return &actualMatchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: make(map[string]string)}
 	}
 
-	return Matchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: knownInfo}
+	return &actualMatchmaker{requests: make(map[string][]*dtasks.AskInfoTask), store: knownInfo}
 }

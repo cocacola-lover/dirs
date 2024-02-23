@@ -5,13 +5,7 @@ import (
 	"os"
 )
 
-type Logger struct {
-	Info    *log.Logger
-	Warning *log.Logger
-	Error   *log.Logger
-}
-
-func NewLogger() Logger {
+func NewLogger() (Logger, Logger, Logger) {
 	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -21,9 +15,5 @@ func NewLogger() Logger {
 	WarningLogger := log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	ErrorLogger := log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-	return Logger{
-		Info:    InfoLogger,
-		Warning: WarningLogger,
-		Error:   ErrorLogger,
-	}
+	return InfoLogger, WarningLogger, ErrorLogger
 }

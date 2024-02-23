@@ -1,56 +1,45 @@
 package thinker
 
 import (
-	fl "dirs/pkg/friendList"
+	envp "dirs/pkg/environment"
 	"dirs/pkg/listener"
-	"dirs/pkg/logger"
-	m "dirs/pkg/matchmaker"
-	ss "dirs/pkg/serviceStore"
-	dtasks "dirs/pkg/tasks"
+	tp "dirs/pkg/tasks"
 )
 
-func InitThinker(logger logger.Logger) {
-	matchmaker := m.NewMatchmaker(logger)
-	friendList := fl.NewFriendList(logger)
-	taskCh := make(chan dtasks.ITask)
+func InitThinker(env envp.Environment) {
 
-	serviceStore := ss.ServiceStore{
-		Matchmaker: &matchmaker,
-		TaskCh:     &taskCh,
-		FriendList: &friendList,
-		Logger:     &logger,
-	}
+	taskCh := make(chan tp.ITask)
 
-	go listener.Listen(serviceStore)
-	go listener.Serve(serviceStore)
+	go listener.Listen(env, &taskCh)
+	go listener.Serve(env, &taskCh)
 
-	resolveTasks(serviceStore)
+	resolveTasks(env, &taskCh)
 }
 
-func resolveTasks(serviceStore ss.ServiceStore) {
+func resolveTasks(env envp.Environment, taskCh *chan tp.ITask) {
 	for {
-		task, ok := <-*serviceStore.TaskCh
+		task, ok := <-*taskCh
 
-		var newTasks []dtasks.ITask
+		var newTasks []tp.ITask
 
 		if !ok {
-			serviceStore.Logger.Warning.Println("Channel closed")
+			env.Warning.Println("Channel closed")
 			return
 		}
 
 		switch task.GetTaskId() {
-		case dtasks.AskInfoId:
-			newTasks = resolveAskInfo(task.(*dtasks.AskInfoTask), serviceStore)
-		case dtasks.SortInfoId:
-			newTasks = resolveSortInfo(task.(*dtasks.SortInfoTask), serviceStore)
-		case dtasks.DemandInfoId:
-			resolveDemandInfo(task.(*dtasks.DemandInfoTask), serviceStore)
+		case tp.AskInfoId:
+			newTasks = resolveAskInfo(task.(*tp.AskInfoTask), env)
+		case tp.SortInfoId:
+			newTasks = resolveSortInfo(task.(*tp.SortInfoTask), env)
+		case tp.DemandInfoId:
+			resolveDemandInfo(task.(*tp.DemandInfoTask), env)
 		default:
-			serviceStore.Logger.Warning.Println("Uknown task")
+			env.Warning.Println("Uknown task")
 		}
 
 		for _, v := range newTasks {
-			*serviceStore.TaskCh <- v
+			*taskCh <- v
 		}
 	}
 }
