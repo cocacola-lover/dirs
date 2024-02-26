@@ -15,7 +15,7 @@ func ProcessAskInfoTask(task *tp.AskInfoTask) error {
 		return err
 	}
 
-	return sendRequest(jsonBody, task.From, http.MethodPost)
+	return sendRequest(jsonBody, task.From, "/send", http.MethodPost)
 }
 
 func ProcessDemandInfoTask(task *tp.DemandInfoTask, env envp.Environment) error {
@@ -25,7 +25,7 @@ func ProcessDemandInfoTask(task *tp.DemandInfoTask, env envp.Environment) error 
 	}
 
 	for _, friend := range env.FriendList.Friends() {
-		sendRequest(jsonBody, friend, http.MethodPost)
+		sendRequest(jsonBody, friend, "/ask", http.MethodPost)
 	}
 
 	return nil
