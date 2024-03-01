@@ -9,27 +9,33 @@ import (
 	"net/http"
 )
 
-type listenerKeyType string
-
-const envKeyListener listenerKeyType = "envListener"
-const chKeyListener listenerKeyType = "chListener"
-
 func askForInfo(w http.ResponseWriter, r *http.Request) {
-	readRequestAndCreateTask(w, r, "POST", tp.NewAskInfoTaskPointer, chKeyListener)
+	env, taskCh := extractValues(r.Context())
+
+	newTask, err := readRequestAndCreateTask(w, r, http.MethodPost, tp.NewAskInfoTaskPointer)
+	if err != nil {
+		env.Error.Printf("Error while receiving askRequest : %s\n", err)
+		return
+	}
+
+	env.Info.Printf("Received askRequest : %s", *newTask)
+	taskCh <- *newTask
 }
 
 func receiveInfo(w http.ResponseWriter, r *http.Request) {
-	readRequestAndCreateTask(w, r, "POST", tp.NewSortInfoTaskPointer, chKeyListener)
+	env, taskCh := extractValues(r.Context())
+
+	newTask, err := readRequestAndCreateTask(w, r, http.MethodPost, tp.NewSortInfoTaskPointer)
+	if err != nil {
+		env.Error.Printf("Error while receiving askRequest : %s\n", err)
+		return
+	}
+
+	env.Info.Printf("Received askRequest : %s", *newTask)
+	taskCh <- *newTask
 }
 
 func Listen(env envp.Environment, taskCh *chan tp.ITask) {
-	messageContext := context.Background()
-
-	// Add env
-	messageContext = context.WithValue(messageContext, envKeyListener, env)
-	// Add taskCh
-	messageContext = context.WithValue(messageContext, chKeyListener, taskCh)
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ask", askForInfo)
 	mux.HandleFunc("/send", receiveInfo)
@@ -37,7 +43,7 @@ func Listen(env envp.Environment, taskCh *chan tp.ITask) {
 		Addr:    ":3333",
 		Handler: mux,
 		BaseContext: func(l net.Listener) context.Context {
-			return messageContext
+			return newServeContext(env, taskCh)
 		},
 	}
 
