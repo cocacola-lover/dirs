@@ -8,9 +8,9 @@ import (
 
 func TestNewMatchmaker(t *testing.T) {
 	os.Setenv("knownInfo", "{\"GoodBook\" : \"this is a story about a pet\", \"BadBook\" : \"this is a story about a man\"}")
-	_, _, Error := logger.NullLogger()
+	i, _, e := logger.NullLogger()
 
-	matchmaker := NewMatchmaker(Error).(actualMatchmaker)
+	matchmaker := NewMatchmaker(i, e).(actualMatchmaker)
 
 	val, ok := matchmaker.store["GoodBook"]
 	if val != "this is a story about a pet" || !ok {

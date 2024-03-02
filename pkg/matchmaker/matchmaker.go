@@ -53,7 +53,7 @@ func (m actualMatchmaker) ProcessSortInfoTask(task *dt.SortInfoTask) []*dt.AskIn
 	return awaitingProcessing
 }
 
-func NewMatchmaker(Error l.Logger) Matchmaker {
+func NewMatchmaker(Info, Error l.Logger) Matchmaker {
 
 	var knownInfo map[string]string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("knownInfo")), &knownInfo)
@@ -62,5 +62,6 @@ func NewMatchmaker(Error l.Logger) Matchmaker {
 		return &actualMatchmaker{requests: make(map[string]*dt.AskInfoTask), store: make(map[string]string)}
 	}
 
+	Info.Println("Unmarshal KnownInfo : ", knownInfo)
 	return &actualMatchmaker{requests: make(map[string]*dt.AskInfoTask), store: knownInfo}
 }

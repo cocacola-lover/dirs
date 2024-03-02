@@ -26,7 +26,7 @@ func (l actualFriendList) IsFriend(url string) bool {
 	return check
 }
 
-func NewFriendList(Error logger.Logger) FriendList {
+func NewFriendList(Info, Error logger.Logger) FriendList {
 
 	var friendsArr []string
 	marshalErr := json.Unmarshal([]byte(os.Getenv("friends")), &friendsArr)
@@ -35,5 +35,6 @@ func NewFriendList(Error logger.Logger) FriendList {
 		return &actualFriendList{friends: make([]string, 0)}
 	}
 
+	Info.Println("Unmarshal FriendList : ", friendsArr)
 	return &actualFriendList{friends: friendsArr}
 }

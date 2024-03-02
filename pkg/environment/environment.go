@@ -16,8 +16,8 @@ type Environment struct {
 
 func NewEnvironment() Environment {
 	i, w, e := l.NewLogger()
-	matchmaker := m.NewMatchmaker(e)
-	friendList := fl.NewFriendList(e)
+	matchmaker := m.NewMatchmaker(i, e)
+	friendList := fl.NewFriendList(i, e)
 	return Environment{Info: i, Warning: w, Error: e, Matchmaker: matchmaker, FriendList: friendList}
 }
 
