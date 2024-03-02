@@ -14,17 +14,31 @@ type actualMatchmaker struct {
 	store map[string]string
 }
 
-// Returns processedtrue if info found
-// else return false
-func (m actualMatchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) bool {
+func (m actualMatchmaker) ProcessAskInfoTask(task *dtasks.AskInfoTask) (bool, bool) {
 	val, ok := m.store[task.Search]
 
 	if ok {
 		task.Result = &val
-		return true
+		return true, false
 	} else {
+		// Check if request is already registered
+		check := false
+
+		for _, el := range m.requests[task.Search] {
+			if el.From == task.From {
+				check = true
+				break
+			}
+		}
+
+		// Return if already registered
+		if check {
+			return false, true
+		}
+
+		// Add to queue
 		m.requests[task.Search] = append(m.requests[task.Search], task)
-		return false
+		return false, false
 	}
 }
 
