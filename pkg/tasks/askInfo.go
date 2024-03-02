@@ -6,6 +6,7 @@ import (
 )
 
 type AskInfoTask struct {
+	Id     string
 	From   string
 	Search string
 	Result *string
@@ -20,6 +21,6 @@ func (t AskInfoTask) String() string {
 }
 
 func NewAskInfoTaskPointer(r drequests.AskInfoRequest) *AskInfoTask {
-	task := AskInfoTask{From: r.From, Search: r.Search}
+	task := AskInfoTask{From: r.From, Search: r.Search, Id: r.Id}
 	return &task
 }

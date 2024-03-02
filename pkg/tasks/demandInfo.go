@@ -3,9 +3,12 @@ package dtasks
 import (
 	drequests "dirs/pkg/requests"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type DemandInfoTask struct {
+	Id     string
 	Search string
 }
 
@@ -18,6 +21,6 @@ func (t DemandInfoTask) String() string {
 }
 
 func NewDemandInfoTaskPointer(r drequests.DemandInfoRequest) *DemandInfoTask {
-	task := DemandInfoTask{Search: r.Search}
+	task := DemandInfoTask{Search: r.Search, Id: uuid.NewString()}
 	return &task
 }
