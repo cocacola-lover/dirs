@@ -9,7 +9,16 @@ import (
 	"os"
 )
 
-func ProcessAskInfoTask(task *tp.AskInfoTask) error {
+// Processes AskInfoTask
+//
+// If task includes result -> sends info to the requester.
+// Otherwise asks for info from friends.
+func ProcessAskInfoTask(task *tp.AskInfoTask, env envp.Environment) error {
+
+	if task.Result == nil {
+		return askInfoFromFriends(rp.AskInfoRequest{Search: task.Search, From: os.Getenv("address")}, env.FriendList)
+	}
+
 	jsonBody, err := json.Marshal(&rp.SendInfoRequest{Search: task.Search, Info: *task.Result})
 	if err != nil {
 		return err
@@ -19,14 +28,5 @@ func ProcessAskInfoTask(task *tp.AskInfoTask) error {
 }
 
 func ProcessDemandInfoTask(task *tp.DemandInfoTask, env envp.Environment) error {
-	jsonBody, err := json.Marshal(&rp.AskInfoRequest{Search: task.Search, From: os.Getenv("address")})
-	if err != nil {
-		return err
-	}
-
-	for _, friend := range env.FriendList.Friends() {
-		sendRequest(jsonBody, friend, "/ask", http.MethodPost)
-	}
-
-	return nil
+	return askInfoFromFriends(rp.AskInfoRequest{Search: task.Search, From: os.Getenv("address")}, env.FriendList)
 }
