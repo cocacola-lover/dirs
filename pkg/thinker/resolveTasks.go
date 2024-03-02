@@ -9,12 +9,14 @@ import (
 func resolveAskInfo(task *tp.AskInfoTask, env envp.Environment) []tp.ITask {
 
 	if task.Result == nil {
-		if !env.Matchmaker.ProcessAskInfoTask(task) {
+		_, alreadyRegistered := env.Matchmaker.ProcessAskInfoTask(task)
+
+		if alreadyRegistered {
 			return nil
 		}
 	}
 
-	broadcaster.ProcessAskInfoTask(task)
+	broadcaster.ProcessAskInfoTask(task, env)
 	return nil
 }
 
